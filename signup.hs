@@ -1,5 +1,6 @@
 import Data.List
 import Data.Maybe
+import Data.Function
 import Control.Monad
 
 data Record = Record { state :: String, partnerId :: String, userId :: String }
@@ -55,18 +56,17 @@ inputLoop = do
     when (command == ":q") $ return ()
     let Input id targetState = read command :: Input
     record <- loadRecord id
-    when (isNothing record) $ return ()
+    when (record & isNothing) $ return ()
     let cmd = Command targetState
     let r = fromJust record
     let startState = toState r
     let endState = transition startState cmd
-    if (isNothing endState)
-        then do
-            putStrLn "Cannot transition like that"
-            inputLoop
-        else do
+    if (endState & isNothing)
+      then do
+          putStrLn "Cannot transition like that"
+      else do
             putStrLn ("Action: " ++ (show (Input id targetState)))
-            inputLoop
+    inputLoop
 
 
 
