@@ -1,5 +1,6 @@
 import Data.List
 import Data.Maybe
+import Control.Monad
 
 data Record = Record { state :: String, partnerId :: String, userId :: String }
     deriving (Show, Read)
@@ -51,28 +52,21 @@ inputLoop :: IO ()
 inputLoop = do
     putStrLn "Tell me what to do:"
     command <- getLine
-    if(command == ":q") 
-        then  
-            do return ()
-        else
-            do
-                let Input id targetState = read command :: Input
-                record <- loadRecord id
-                if(not (isJust record)) 
-                    then do return ()
-                    else 
-                        do
-                            let cmd = Command targetState
-                            let r = fromJust record
-                            let startState = toState r
-                            let endState = transition startState cmd
-                            if(not (isJust endState))
-                                then do
-                                    putStrLn "Cannot transition like that"
-                                    inputLoop
-                                else do
-                                    putStrLn ("Action: " ++ (show (Input id targetState)))
-                                    inputLoop
+    when (command == ":q") $ return ()
+    let Input id targetState = read command :: Input
+    record <- loadRecord id
+    when (not (isJust record)) $ return ()
+    let cmd = Command targetState
+    let r = fromJust record
+    let startState = toState r
+    let endState = transition startState cmd
+    if(not (isJust endState))
+        then do
+            putStrLn "Cannot transition like that"
+            inputLoop
+        else do
+            putStrLn ("Action: " ++ (show (Input id targetState)))
+            inputLoop
     
      
 
