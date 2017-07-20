@@ -55,20 +55,20 @@ inputLoop = do
     when (command == ":q") $ return ()
     let Input id targetState = read command :: Input
     record <- loadRecord id
-    when (not (isJust record)) $ return ()
+    when (isNothing record) $ return ()
     let cmd = Command targetState
     let r = fromJust record
     let startState = toState r
     let endState = transition startState cmd
-    if(not (isJust endState))
+    if (isNothing endState)
         then do
             putStrLn "Cannot transition like that"
             inputLoop
         else do
             putStrLn ("Action: " ++ (show (Input id targetState)))
             inputLoop
-    
-     
+
+
 
 
 
