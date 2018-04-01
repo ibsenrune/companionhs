@@ -62,11 +62,20 @@ saveRecords rs =
 
 updateRecord :: [Record] -> RecordIdentifier -> UserState -> [Record]
 updateRecord [] _ _ = []
-updateRecord all@(r@(Record { partnerId = rpid }):rest) (PartnerId pid) state | rpid == pid = 
-    (r { state = toStateString state}) : rest 
-updateRecord all@(r@(Record{ userId = ruid }):rest) (UserId uid) state | ruid == uid =
-    (r { state = toStateString state  }) : rest 
+updateRecord all@(r@(Record { partnerId = rpid }):rest) (PartnerId pid) state 
+    | rpid == pid = (r { state = toStateString state }) : rest 
+updateRecord all@(r@(Record{ userId = ruid }):rest) (UserId uid) state 
+    | ruid == uid = (r { state = toStateString state }) : rest 
 updateRecord (r:rest) id state = r : (updateRecord rest id state)
+
+updateRecords :: ([Record] -> [Record]) -> () -> IO ()
+updateRecords f _ = do
+    records <- loadRecords ()
+    let updatedRecords = f records
+    saveRecords updatedRecords
+
+writeNewState :: RecordIdentifier -> UserState -> IO ()
+writeNewState id state = updateRecords (\records -> updateRecord records id state) ()
 
 inputLoop :: IO ()
 inputLoop = do
