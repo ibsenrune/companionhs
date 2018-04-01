@@ -19,12 +19,15 @@ data UserState =
 data Command = Command UserState
 data Input = Input RecordIdentifier UserState deriving (Show, Read)
 
+parseState :: String -> UserState
+parseState "NonExistent" = NonExistent
+parseState "Inactive" = Inactive
+parseState "Pending" = Pending
+parseState "Active" = Active
+parseState "Suspended" = Suspended
+
 toState :: Record -> UserState
-toState Record { state = "NonExistent" } = NonExistent
-toState Record { state = "Inactive" } = Inactive
-toState Record { state = "Pending" } = Pending
-toState Record { state = "Active" } = Active
-toState Record { state = "Suspended" } = Suspended
+toState = parseState . state
 
 toStateString :: UserState -> String
 toStateString Active = "Active"
@@ -76,6 +79,9 @@ updateRecords f _ = do
 
 writeNewState :: RecordIdentifier -> UserState -> IO ()
 writeNewState id state = updateRecords (\records -> updateRecord records id state) ()
+
+addNewRecord :: Record -> IO ()
+addNewRecord r = updateRecords (\records -> r:records) ()
 
 inputLoop :: IO ()
 inputLoop = do
