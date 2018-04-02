@@ -5,6 +5,7 @@ module Parser where
  - -}
 
 import Text.ParserCombinators.Parsec
+import Text.ParserCombinators.Parsec.Char
 import Control.Monad (void)
 import Types
 
@@ -21,19 +22,17 @@ cmd = do
 identifier :: Parser RecordIdentifier
 identifier = userId <|> partnerId
 
-userId :: Parser RecordIdentifier
-userId = do 
-    string "UserId"
-    char '('
-    id <- manyTill anyChar (char ')')
-    return $ UserId id
-
 partnerId :: Parser RecordIdentifier
-partnerId = do
-    string "PartnerId"
-    char '('
-    id <- manyTill anyChar (char ')')
-    return $ PartnerId id
+partnerId = ident "PartnerId" PartnerId
+
+userId :: Parser RecordIdentifier
+userId = ident "UserId" UserId
+
+ident :: String -> (String -> RecordIdentifier) -> Parser RecordIdentifier
+ident typId ctor = do
+    string typId
+    id <- between (char '(') (char ')') (many alphaNum)
+    return $ ctor id
 
 mapTo :: Parser String
 mapTo = string "->"
