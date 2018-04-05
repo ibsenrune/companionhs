@@ -1,4 +1,4 @@
-module DB (loadState) where
+module DB (loadState, writeState) where
 import Types
 import Data.List
 
