@@ -1,6 +1,7 @@
-module DB (loadState, writeState) where
+module DB (loadState, loadRecords, writeState, updateRecord) where
 import Types
 import Data.List
+import System.Directory
 
 data Record = Record { state :: String, partnerId :: String, userId :: String }
     deriving (Show, Read)
@@ -28,14 +29,14 @@ loadRecords _ = do
         let records = read txt :: [Record]
         return records
 
-findRecord :: RecordIdentifier -> [Record] -> Maybe Record
-findRecord (UserId ui)    = find (\r -> userId r    == ui) 
-findRecord (PartnerId pi) = find (\r -> partnerId r == pi) 
-
 loadRecord :: RecordIdentifier -> IO (Maybe Record)
 loadRecord id = do
     records <- loadRecords ()
     return (findRecord id records)
+
+findRecord :: RecordIdentifier -> [Record] -> Maybe Record
+findRecord (UserId ui)    = find (\r -> userId r    == ui) 
+findRecord (PartnerId pi) = find (\r -> partnerId r == pi) 
 
 loadState :: RecordIdentifier -> IO (Maybe UserState)
 loadState id = do
@@ -43,8 +44,10 @@ loadState id = do
     return (fmap toState maybeRecord)
 
 saveRecords :: [DB.Record] -> IO ()
-saveRecords rs =
-    do writeFile "store.txt" (show rs)
+saveRecords rs = do
+    writeFile "store.tmp" (show rs)
+    renameFile "store.tmp" "store.txt"
+    
 
 updateRecord :: [Record] -> RecordIdentifier -> UserState -> [Record]
 updateRecord [] _ _ = []
